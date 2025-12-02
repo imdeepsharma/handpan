@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Handpan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1a2e; /* Dark theme */
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Handpan Shell */
+        #handpan-shell {
+            position: relative;
+            /* Responsive sizing based on viewport */
+            width: 80vw;
+            max-width: 450px;
+            height: 80vw;
+            max-height: 450px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 50% 50%, #b89a69, #8d6b41, #6b4e2c); /* Metallic gradient */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 0 50px rgba(255, 255, 255, 0.2);
+            margin: 40px 0;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.2s ease;
+        }
+
+        /* Note Pads (Tones) */
+        .note-pad {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.15); /* Slightly lighter pad */
+            border: 2px solid rgba(0, 0, 0, 0.3);
+            font-weight: 600;
+            font-size: 0.9rem;
+            opacity: 0.9;
+            transition: all 0.1s ease-out;
+            cursor: pointer;
+        }
+
+        /* Center Ding (D4) */
+        .center-ding {
+            width: 35%;
+            height: 35%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
+            background-color: rgba(255, 255, 255, 0.2);
+            z-index: 10;
+        }
+
+        /* Outer Notes */
+        .outer-note {
+            width: 20%;
+            height: 20%;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.4);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Active State */
+        .note-active {
+            transform: scale(0.95);
+            opacity: 1;
+            background-color: #69b89a; /* Highlight color */
+            box-shadow: 0 0 15px #69b89a;
+        }
+
+        .center-ding.note-active {
+             background-color: #b8699b;
+             box-shadow: 0 0 15px #b8699b;
+        }
+
+        /* Keyboard Key Hint */
+        .key-hint {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+
+        /* Responsive placement of outer notes (adjust based on parent size) */
+        #note-1 { top: 7%; left: 50%; transform: translate(-50%, 0); }
+        #note-2 { top: 20%; right: 12%; }
+        #note-3 { top: 50%; right: 7%; transform: translate(0, -50%); }
+        #note-4 { bottom: 20%; right: 12%; }
+        #note-5 { bottom: 7%; left: 50%; transform: translate(-50%, 0); }
+        #note-6 { bottom: 20%; left: 12%; }
+        #note-7 { top: 50%; left: 7%; transform: translate(0, -50%); }
+        #note-8 { top: 20%; left: 12%; }
+
+        /* Status message styling */
+        #status-message {
+            min-height: 20px;
+        }
+        
+        /* Button styling */
+        .control-button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: transform 0.1s ease, background-color 0.2s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+        }
+        .control-button:hover {
+            transform: translateY(-1px);
+        }
+        .control-button:active {
+            transform: translateY(1px);
+        }
+    </style>
+</head>
+<body>
+
+    <h1 class="text-3xl font-bold mb-2">Virtual Handpan</h1>
+    <p id="status-message" class="text-green-400 mb-6"></p>
+
+    <!-- Handpan Container -->
+    <div id="handpan-shell">
+        <!-- Ding (Center Note) - D Minor Kurd Scale -->
+        <div data-note="D4" data-key="0" class="note-pad center-ding">
+            D4
+            <span class="key-hint">1</span>
+        </div>
+
+        <!-- Outer Notes (8 notes, mapped to keys 2-9) -->
+        <div id="note-1" data-note="A3" data-key="1" class="note-pad outer-note">A3<span class="key-hint">2</span></div>
+        <div id="note-2" data-note="C4" data-key="2" class="note-pad outer-note">C4<span class="key-hint">3</span></div>
+        <div id="note-3" data-note="E4" data-key="3" class="note-pad outer-note">E4<span class="key-hint">4</span></div>
+        <div id="note-4" data-note="F4" data-key="4" class="note-pad outer-note">F4<span class="key-hint">5</span></div>
+        <div id="note-5" data-note="G4" data-key="5" class="note-pad outer-note">G4<span class="key-hint">6</span></div>
+        <div id="note-6" data-note="A4" data-key="6" class="note-pad outer-note">A4<span class="key-hint">7</span></div>
+        <div id="note-7" data-note="C5" data-key="7" class="note-pad outer-note">C5<span class="key-hint">8</span></div>
+        <div id="note-8" data-note="D5" data-key="8" class="note-pad outer-note">D5<span class="key-hint">9</span></div>
+    </div>
+    
+    <!-- Control Buttons -->
+    <div class="flex space-x-4 mb-8">
+        <button id="play-melody-btn" class="control-button bg-green-500 hover:bg-green-600 text-white">
+            Play Tune
+        </button>
+        <button id="stop-melody-btn" class="control-button bg-red-500 hover:bg-red-600 text-white">
+            Stop
+        </button>
+    </div>
+
+    <div class="mt-8 p-4 bg-gray-700/50 rounded-lg shadow-xl text-center">
+        <h3 class="text-xl font-semibold mb-2 text-yellow-300">Controls</h3>
+        <p class="text-sm">Click/Tap the notes or use your keyboard keys (1-9) to play.</p>
+        <p class="text-xs mt-1 text-gray-400">Scale: D Minor Kurd (D4, A3, C4, E4, F4, G4, A4, C5, D5)</p>
+    </div>
+
+
+    <script>
+        // --- Web Audio Initialization (Tone.js) ---
+
+        let synth;
+        let melodyPart; // Tone.js Part for the automatic melody
+        let isAudioContextInitialized = false;
+        const noteElements = document.querySelectorAll('.note-pad');
+        const statusMessage = document.getElementById('status-message');
+        const playMelodyBtn = document.getElementById('play-melody-btn');
+        const stopMelodyBtn = document.getElementById('stop-melody-btn');
+
+        // Note mapping for keyboard (1-9 keys)
+        const keyMap = {};
+        noteElements.forEach(el => {
+            const keyIndex = parseInt(el.dataset.key);
+            const keyCode = 49 + keyIndex;
+            keyMap[keyCode] = el.dataset.note;
+        });
+
+        // Function to find the DOM element for a given note
+        function findNoteElement(note) {
+            return Array.from(noteElements).find(el => el.dataset.note === note);
+        }
+
+        // The sequence of notes transcribed from the user's audio sample
+        const melodySequence = [
+            { time: "0:0:0", note: "D4", duration: "4n" },
+            { time: "0:1:0", note: "A3", duration: "4n" },
+            { time: "0:2:0", note: "C4", duration: "4n" },
+            { time: "0:3:0", note: "D4", duration: "4n" },
+            { time: "1:0:0", note: "A4", duration: "4n" },
+            { time: "1:1:0", note: "G4", duration: "4n" },
+            { time: "1:2:0", note: "F4", duration: "4n" },
+            { time: "1:3:0", note: "E4", duration: "4n" },
+        ];
+
+
+        // Function to initialize Tone.js and the PolySynth
+        function initAudioContext() {
+            if (isAudioContextInitialized) return;
+
+            // Set up effects: Increased Reverb and Delay to simulate deep resonance
+            const reverb = new Tone.Reverb({
+                decay: 5, // Longer decay time for sustained resonance
+                preDelay: 0.05,
+                wet: 0.7 // High wetness for an airy, atmospheric sound
+            }).toDestination();
+
+            const delay = new Tone.FeedbackDelay({
+                delayTime: "4n", // Longer delay time
+                feedback: 0.4,
+                wet: 0.4
+            }).connect(reverb);
+
+            // UPDATED SYNTH CONFIGURATION for a richer, more bell-like timbre
+            // Use FMSynth (Frequency Modulation) for complex, metallic sounds
+            synth = new Tone.PolySynth(Tone.FMSynth, {
+                // Settings for the FMSynth voice
+                oscillator: {
+                    type: "triangle" // Base oscillator
+                },
+                envelope: {
+                    attack: 0.005, // Very fast attack for percussive hit
+                    decay: 1.8,   // Slightly longer decay for more sustain
+                    sustain: 0.0, // No sustain
+                    release: 0.5  // Quick release
+                },
+                modulation: {
+                    type: "square" // Complex modulation for metallic texture
+                },
+                // Crucial for inharmonic/shimmering sound: set a small detune amount
+                detune: 5, 
+                modulationIndex: 12, // High modulation index for bright, metallic sound
+                volume: -8
+            }).connect(delay);
+            
+            // Create the melody part
+            melodyPart = new Tone.Part((time, value) => {
+                // Trigger the note
+                synth.triggerAttackRelease(value.note, value.duration, time);
+                
+                // Trigger visual feedback (must be scheduled via Tone.js's timing)
+                Tone.Draw.schedule(() => {
+                    const element = findNoteElement(value.note);
+                    if (element) {
+                        element.classList.add('note-active');
+                        setTimeout(() => {
+                            element.classList.remove('note-active');
+                        }, 150); // Match the visual feedback duration to the attack
+                    }
+                }, time);
+
+            }, melodySequence);
+
+            // Set loop and length
+            melodyPart.loop = true;
+            melodyPart.loopEnd = "2m"; // Loop every 2 measures (8 beats)
+            
+            // Start the audio context and transport
+            Tone.start();
+            Tone.Transport.bpm.value = 80; // Set a moderate tempo for the meditative tune
+            isAudioContextInitialized = true;
+            statusMessage.textContent = "Click or press a key to play!";
+        }
+
+        // Function to trigger a note (manual play)
+        function triggerNote(note, element) {
+            initAudioContext(); // Ensure context is running on first interaction
+            
+            // FIX: Only call stop functions if the transport is actively running.
+            // This prevents the RangeError caused by Tone.js attempting to schedule 
+            // a stop command at an infinitesimally small or negative time value.
+            if (Tone.Transport.state === 'started') {
+                Tone.Transport.stop();
+                melodyPart.stop();
+            }
+            
+            if (synth) {
+                const now = Tone.now();
+                // Use a short duration for manual hits
+                synth.triggerAttackRelease(note, "8n", now);
+
+                // Visual feedback
+                if (element) {
+                    element.classList.add('note-active');
+                    setTimeout(() => {
+                        element.classList.remove('note-active');
+                    }, 150);
+                }
+            }
+        }
+
+        // --- Melody Playback Controls ---
+
+        function startMelody() {
+            initAudioContext();
+            if (Tone.Transport.state !== 'started') {
+                melodyPart.start("0"); // Start from the beginning
+                Tone.Transport.start();
+                statusMessage.textContent = "Playing automated melody. Press STOP to manually play.";
+            }
+        }
+
+        function stopMelody() {
+            if (Tone.Transport.state === 'started') {
+                Tone.Transport.stop();
+                melodyPart.stop();
+                statusMessage.textContent = "Melody stopped. Click or press a key to play manually.";
+            }
+        }
+
+        // --- Event Listeners ---
+
+        // 1. Click/Touch listeners for note pads (manual play)
+        noteElements.forEach(element => {
+            element.addEventListener('mousedown', (e) => {
+                e.preventDefault(); 
+                const note = element.dataset.note;
+                triggerNote(note, element);
+            });
+            element.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const note = element.dataset.note;
+                triggerNote(note, element);
+            }, { passive: false });
+        });
+        
+        // 2. Control Button listeners
+        playMelodyBtn.addEventListener('click', startMelody);
+        stopMelodyBtn.addEventListener('click', stopMelody);
+
+
+        // 3. Keyboard listeners (manual play)
+        const pressedKeys = new Set();
+        document.addEventListener('keydown', (e) => {
+            if (e.keyCode >= 49 && e.keyCode <= 57) {
+                if (!pressedKeys.has(e.keyCode)) {
+                    e.preventDefault();
+                    pressedKeys.add(e.keyCode);
+                    const note = keyMap[e.keyCode];
+                    if (note) {
+                        const targetElement = findNoteElement(note);
+                        triggerNote(note, targetElement);
+                    }
+                }
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.keyCode >= 49 && e.keyCode <= 57) {
+                pressedKeys.delete(e.keyCode);
+            }
+        });
+
+        // Initial setup message
+        statusMessage.textContent = "Click anywhere to initialize audio...";
+        document.body.addEventListener('click', initAudioContext, { once: true });
+        document.body.addEventListener('touchstart', initAudioContext, { once: true });
+
+    </script>
+</body>
+</html>
