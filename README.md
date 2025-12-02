@@ -21,7 +21,7 @@ Welcome to the **Virtual Handpan**, a free, interactive online tool that allows 
 - **For Musicians**: Use as a tool for inspiration, practice, or composing new melodies.
 
 ## How to Get Started
-1. Open the **[Virtual Handpan Website](https://your-username.github.io/your-repository-name)**.
+1. Open the **[Virtual Handpan Website](https://imdeepsharma.github.io/handpan)**.
 2. Play with the interactive handpan right away using your keyboard or touchscreen.
 
 ## Keywords
